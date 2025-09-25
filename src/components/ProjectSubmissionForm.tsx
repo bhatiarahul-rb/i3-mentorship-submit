@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, CheckCircle, GraduationCap, Users, Code } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FormData {
   fullName: string;
@@ -84,15 +85,56 @@ export default function ProjectSubmissionForm() {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      let fileUrl = null;
+
+      // Upload file if present
+      if (formData.file) {
+        const fileName = `${Date.now()}_${formData.file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('project-files')
+          .upload(fileName, formData.file);
+
+        if (uploadError) {
+          throw new Error(`File upload failed: ${uploadError.message}`);
+        }
+
+        fileUrl = uploadData.path;
+      }
+
+      // Insert form data into database
+      const { error: insertError } = await supabase
+        .from('project_submissions')
+        .insert({
+          full_name: formData.fullName,
+          enrollment_number: formData.enrollmentNumber,
+          branch: formData.branch,
+          year: formData.year,
+          project_title: formData.projectTitle,
+          project_link: formData.projectLink || null,
+          project_description: formData.projectDescription || null,
+          file_url: fileUrl,
+        });
+
+      if (insertError) {
+        throw new Error(`Submission failed: ${insertError.message}`);
+      }
+
       setIsSubmitted(true);
-      setIsSubmitting(false);
       toast({
         title: "Project submitted successfully!",
         description: "Your project has been recorded. You'll hear back from our team soon.",
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: "Submission failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {

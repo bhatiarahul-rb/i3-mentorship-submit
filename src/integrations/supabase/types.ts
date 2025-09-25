@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      project_submissions: {
+        Row: {
+          branch: string
+          created_at: string
+          enrollment_number: string
+          file_url: string | null
+          full_name: string
+          id: string
+          project_description: string | null
+          project_link: string | null
+          project_title: string
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          branch: string
+          created_at?: string
+          enrollment_number: string
+          file_url?: string | null
+          full_name: string
+          id?: string
+          project_description?: string | null
+          project_link?: string | null
+          project_title: string
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          branch?: string
+          created_at?: string
+          enrollment_number?: string
+          file_url?: string | null
+          full_name?: string
+          id?: string
+          project_description?: string | null
+          project_link?: string | null
+          project_title?: string
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
